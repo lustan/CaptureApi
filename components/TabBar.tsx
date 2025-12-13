@@ -23,7 +23,9 @@ export const TabBar: React.FC<TabBarProps> = ({
     
     // Overflow Dropdown State
     const [isOverflowOpen, setIsOverflowOpen] = useState(false);
+    const [hasOverflow, setHasOverflow] = useState(false);
     const overflowRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     // Context Menu State
     const [contextMenu, setContextMenu] = useState<{ x: number, y: number, tabId: string } | null>(null);
@@ -115,6 +117,21 @@ export const TabBar: React.FC<TabBarProps> = ({
 
     // --- Effects ---
 
+    // Check overflow
+    useEffect(() => {
+        const checkOverflow = () => {
+            if (scrollContainerRef.current) {
+                const { scrollWidth, clientWidth } = scrollContainerRef.current;
+                // Add a small buffer (e.g. 1px) to avoid precision issues
+                setHasOverflow(scrollWidth > clientWidth + 1);
+            }
+        };
+
+        checkOverflow();
+        window.addEventListener('resize', checkOverflow);
+        return () => window.removeEventListener('resize', checkOverflow);
+    }, [tabs]);
+
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
              setSaveDropdown(null);
@@ -135,7 +152,10 @@ export const TabBar: React.FC<TabBarProps> = ({
             <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-200 z-0"></div>
 
             {/* Scrollable Area */}
-            <div className="flex-1 flex overflow-x-auto no-scrollbar items-end pr-8 relative z-10">
+            <div 
+                ref={scrollContainerRef}
+                className={`flex-1 flex overflow-x-auto no-scrollbar items-end relative z-10 ${hasOverflow ? 'pr-8' : ''}`}
+            >
                 {tabs.map(tab => (
                     <div 
                         key={tab.id}
@@ -202,36 +222,38 @@ export const TabBar: React.FC<TabBarProps> = ({
                 ))}
             </div>
 
-            {/* Overflow Menu Button */}
-            <div className="absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-gray-100 to-transparent pl-4 pr-1" ref={overflowRef}>
-                <button 
-                    onClick={(e) => { e.stopPropagation(); setIsOverflowOpen(!isOverflowOpen); }}
-                    className="p-1.5 rounded hover:bg-gray-200 text-gray-500 transition-colors"
-                    title="List all tabs"
-                >
-                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                
-                {isOverflowOpen && (
-                    <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50 max-h-80 overflow-y-auto">
-                        <div className="py-1">
-                            {tabs.map(tab => (
-                                <div 
-                                    key={tab.id}
-                                    onClick={() => { onTabClick(tab.id); setIsOverflowOpen(false); }}
-                                    className={`px-4 py-2 text-xs flex items-center cursor-pointer hover:bg-gray-50 ${activeTabId === tab.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-                                >
-                                    {tab.type === 'request' && (
-                                        <span className={`w-10 font-bold mr-2 ${getMethodColor(tab.method)}`}>{tab.method}</span>
-                                    )}
-                                    {tab.type === 'welcome' && <span className="w-10 mr-2 text-center">🏠</span>}
-                                    <span className="truncate">{tab.title}</span>
-                                </div>
-                            ))}
+            {/* Overflow Menu Button - Only show if hasOverflow */}
+            {hasOverflow && (
+                <div className="absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-gray-100 via-gray-100 to-transparent pl-4 pr-1 z-20" ref={overflowRef}>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); setIsOverflowOpen(!isOverflowOpen); }}
+                        className={`p-1.5 rounded hover:bg-gray-200 transition-colors ${isOverflowOpen ? 'bg-gray-200 text-gray-700' : 'text-gray-500'}`}
+                        title="List all tabs"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    
+                    {isOverflowOpen && (
+                        <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50 max-h-80 overflow-y-auto">
+                            <div className="py-1">
+                                {tabs.map(tab => (
+                                    <div 
+                                        key={tab.id}
+                                        onClick={() => { onTabClick(tab.id); setIsOverflowOpen(false); }}
+                                        className={`px-4 py-2 text-xs flex items-center cursor-pointer hover:bg-gray-50 ${activeTabId === tab.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+                                    >
+                                        {tab.type === 'request' && (
+                                            <span className={`w-10 font-bold mr-2 ${getMethodColor(tab.method)}`}>{tab.method}</span>
+                                        )}
+                                        {tab.type === 'welcome' && <span className="w-10 mr-2 text-center">🏠</span>}
+                                        <span className="truncate">{tab.title}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
 
             {/* Save Collection Dropdown */}
             {saveDropdown && (

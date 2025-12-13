@@ -327,9 +327,17 @@ const App: React.FC = () => {
         }
     }
     
-    // Better naming logic: use last part of path or host
-    // User requested to use FULL URL as name
-    const smartName = log.url;
+    // Better naming logic: use pathname instead of full URL
+    let smartName = log.url;
+    try {
+        const urlObj = new URL(log.url);
+        smartName = urlObj.pathname;
+        if (smartName === '/' || smartName === '') {
+            smartName = urlObj.origin;
+        }
+    } catch (e) {
+        // fallback to full url
+    }
 
     const newReq: HttpRequest = {
         ...createNewRequest(),
@@ -415,6 +423,14 @@ const App: React.FC = () => {
           }
       }
   };
+  
+  const handleDeleteLog = (id: string) => {
+      const newHistory = history.filter(h => h.id !== id);
+      setHistory(newHistory);
+      chrome.storage.local.set({ logs: newHistory });
+      
+      // Also close tab if open? Optional, but generally good UX to keep it open if user was working on it.
+  };
 
   const handleToggleCollapse = (colId: string) => {
       const updated = collections.map(c => c.id === colId ? { ...c, collapsed: !c.collapsed } : c);
@@ -486,6 +502,7 @@ const App: React.FC = () => {
         onCreateRequest={handleCreateRequest}
         onImportCurl={() => setIsCurlModalOpen(true)}
         onClearHistory={() => chrome.storage.local.set({ logs: [] })}
+        onDeleteLog={handleDeleteLog}
         // CRUD
         onRenameCollection={handleRenameCollection}
         onRenameRequest={handleRenameRequest}

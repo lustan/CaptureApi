@@ -17,9 +17,10 @@ interface SidebarProps {
   onCreateRequest: () => void;
   onImportCurl: () => void;
   onClearHistory: () => void;
-  // New CRUD Actions
+  onDeleteLog: (id: string) => void; // New prop for single deletion
+  // CRUD Actions
   onRenameCollection: (id: string, newName: string) => void;
-  onRenameRequest: (reqId: string, newName: string) => void; // New Prop
+  onRenameRequest: (reqId: string, newName: string) => void;
   onDeleteCollection: (id: string) => void;
   onDeleteRequest: (req: HttpRequest) => void;
   onToggleCollapse: (colId: string) => void;
@@ -38,6 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCreateRequest,
   onImportCurl,
   onClearHistory,
+  onDeleteLog,
   onRenameCollection,
   onRenameRequest,
   onDeleteCollection,
@@ -191,7 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={() => onTabChange('history')}
           className={`flex-1 py-2 text-center transition-colors ${activeTab === 'history' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}
         >
-          Captured Requests
+          Captured
         </button>
       </div>
 
@@ -199,8 +201,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {activeTab === 'history' && (
           <div>
              <div className="p-2 bg-gray-100 flex justify-between items-center sticky top-0 z-10 border-b border-gray-200">
-                 <span className="text-xs font-bold text-gray-500">Captured Requests ({validHistory.length})</span>
-                 <button onClick={onClearHistory} className="text-xs text-gray-400 hover:text-red-500">Clear</button>
+                 <span className="text-xs font-semibold text-gray-400">{validHistory.length} requests</span>
+                 <button onClick={onClearHistory} className="text-xs text-gray-400 hover:text-red-500">Clear All</button>
              </div>
 
              {/* Search Filter */}
@@ -226,7 +228,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                    return (
                      <li 
                         key={item.id} 
-                        className="px-3 py-2 hover:bg-white cursor-pointer group transition-colors border-l-2 border-transparent hover:border-green-500"
+                        className="relative px-3 py-2 hover:bg-white cursor-pointer group transition-colors border-l-2 border-transparent hover:border-green-500"
                         onClick={() => onImportLoggedRequest(item)}
                      >
                        <div className="flex items-center justify-between mb-0.5">
@@ -242,10 +244,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                              </span>
                          </div>
                        </div>
-                       <div className="flex flex-col">
+                       <div className="flex flex-col pr-4">
                            <span className="text-xs font-semibold text-gray-700 truncate" title={origin}>{origin}</span>
                            <span className="text-[10px] text-gray-500 truncate font-mono" title={path}>{path}</span>
                        </div>
+
+                       {/* Delete Button - Visible on Hover */}
+                       <button
+                         onClick={(e) => { e.stopPropagation(); onDeleteLog(item.id); }}
+                         className="absolute right-2 top-2 hidden group-hover:block p-1 text-gray-400 hover:text-red-500 bg-white rounded shadow-sm border border-gray-100 hover:border-red-200 transition-all"
+                         title="Delete Log"
+                       >
+                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                       </button>
                      </li>
                    );
                })}
