@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import { LoggedRequest } from './types';
-import { formatUrl, formatTime } from './utils';
+import { formatUrl, formatTime, getMethodBadgeColor } from './utils';
 
 const Popup = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -104,11 +104,9 @@ const Popup = () => {
                         className="px-4 py-2 hover:bg-white cursor-pointer transition-colors border-l-4 border-transparent hover:border-green-500 bg-white mb-0.5"
                     >
                         <div className="flex items-center justify-between mb-1">
-                             <span className={`text-[10px] font-bold px-1.5 rounded ${
-                                log.method === 'GET' ? 'bg-green-100 text-green-700' :
-                                log.method === 'POST' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-blue-100 text-blue-700'
-                             }`}>{log.method}</span>
+                             <span className={`text-[10px] font-bold px-1.5 rounded ${getMethodBadgeColor(log.method)}`}>
+                                {log.method}
+                             </span>
                              <div className="flex items-center space-x-2">
                                 <span className="text-[10px] text-gray-400 font-mono">
                                     {formatTime(log.timestamp)}

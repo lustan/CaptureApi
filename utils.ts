@@ -3,6 +3,34 @@ import { KeyValue, HttpRequest } from './types';
 
 export const generateId = (): string => Math.random().toString(36).substr(2, 9);
 
+export const getMethodColor = (method?: string): string => {
+  const m = method?.toUpperCase() || '';
+  switch (m) {
+    case 'GET': return 'text-green-600';
+    case 'POST': return 'text-yellow-600';
+    case 'PUT': return 'text-blue-600';
+    case 'DELETE': return 'text-red-600';
+    case 'PATCH': return 'text-purple-600';
+    case 'OPTIONS': return 'text-indigo-600';
+    case 'HEAD': return 'text-teal-600';
+    default: return 'text-gray-600';
+  }
+};
+
+export const getMethodBadgeColor = (method?: string): string => {
+    const m = method?.toUpperCase() || '';
+    switch (m) {
+        case 'GET': return 'bg-green-100 text-green-700';
+        case 'POST': return 'bg-yellow-100 text-yellow-700';
+        case 'PUT': return 'bg-blue-100 text-blue-700';
+        case 'DELETE': return 'bg-red-100 text-red-700';
+        case 'PATCH': return 'bg-purple-100 text-purple-700';
+        case 'OPTIONS': return 'bg-indigo-100 text-indigo-700';
+        case 'HEAD': return 'bg-teal-100 text-teal-700';
+        default: return 'bg-gray-100 text-gray-700';
+    }
+};
+
 export const parseCurl = (curlCommand: string): Partial<HttpRequest> | null => {
   if (!curlCommand || !curlCommand.trim().toLowerCase().startsWith('curl')) return null;
 
@@ -78,10 +106,6 @@ export const parseCurl = (curlCommand: string): Partial<HttpRequest> | null => {
         request.method = 'POST';
     }
   }
-
-  // 6. Compressed header flag handling (--compressed)
-  // Chrome copies as cURL with --compressed, we can ignore it or add Accept-Encoding
-  // Usually fetch handles decompression automatically.
 
   return request;
 };

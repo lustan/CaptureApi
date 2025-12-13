@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { HttpRequest, HttpMethod } from '../types';
+import { getMethodColor } from '../utils';
 
 interface RequestHeaderProps {
     request: HttpRequest;
@@ -10,19 +11,6 @@ interface RequestHeaderProps {
 }
 
 const METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
-
-const getMethodColor = (method: string) => {
-    switch (method) {
-        case 'GET': return 'text-green-600';
-        case 'POST': return 'text-yellow-600';
-        case 'PUT': return 'text-blue-600';
-        case 'DELETE': return 'text-red-600';
-        case 'PATCH': return 'text-purple-600';
-        case 'OPTIONS': return 'text-indigo-600';
-        case 'HEAD': return 'text-green-600';
-        default: return 'text-gray-600';
-    }
-};
 
 export const RequestHeader: React.FC<RequestHeaderProps> = ({ request, onRequestChange, onSend, isSending }) => {
     const [isMethodOpen, setIsMethodOpen] = useState(false);

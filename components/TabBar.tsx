@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { TabItem, HttpMethod, CollectionItem } from '../types';
+import { TabItem, CollectionItem } from '../types';
+import { getMethodColor } from '../utils';
 
 interface TabBarProps {
     tabs: TabItem[];
@@ -33,17 +34,6 @@ export const TabBar: React.FC<TabBarProps> = ({
 
     // Drag State
     const [draggedTabId, setDraggedTabId] = useState<string | null>(null);
-
-    const getMethodColor = (method?: HttpMethod) => {
-        if (!method) return 'text-gray-500';
-        switch(method) {
-            case 'GET': return 'text-green-600';
-            case 'POST': return 'text-yellow-600';
-            case 'DELETE': return 'text-red-600';
-            case 'PUT': return 'text-blue-600';
-            default: return 'text-gray-600';
-        }
-    };
 
     // --- Actions ---
 

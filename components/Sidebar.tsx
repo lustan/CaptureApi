@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { LoggedRequest, SidebarTab, CollectionItem, HttpRequest } from '../types';
-import { formatUrl, formatTime } from '../utils';
+import { formatUrl, formatTime, getMethodColor } from '../utils';
 import { APP_CONFIG } from '../config';
 
 interface SidebarProps {
@@ -230,11 +230,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onClick={() => onImportLoggedRequest(item)}
                      >
                        <div className="flex items-center justify-between mb-0.5">
-                         <span className={`text-[10px] font-bold w-12 ${
-                            item.method === 'GET' ? 'text-green-600' : 
-                            item.method === 'POST' ? 'text-yellow-600' : 
-                            item.method === 'DELETE' ? 'text-red-600' : 'text-blue-600'
-                         }`}>
+                         <span className={`text-[10px] font-bold w-12 ${getMethodColor(item.method)}`}>
                             {item.method}
                          </span>
                          <div className="flex items-center space-x-2">
@@ -322,11 +318,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                     ${draggedReqId === req.id ? 'opacity-50' : ''}
                                 `}
                             >
-                                <span className={`w-8 font-bold text-[9px] mr-1 ${
-                                    req.method === 'GET' ? 'text-green-600' : 
-                                    req.method === 'POST' ? 'text-yellow-600' : 
-                                    req.method === 'DELETE' ? 'text-red-600' : 'text-blue-600'
-                                }`}>{req.method}</span>
+                                <span className={`w-8 font-bold text-[9px] mr-1 ${getMethodColor(req.method)}`}>{req.method}</span>
                                 
                                 {editingId === req.id ? (
                                     <input 
