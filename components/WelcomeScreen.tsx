@@ -17,7 +17,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreateRequest, o
             <Logo size={64} className="text-green-600" />
         </div>
         
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">HTTP Debugger</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">HTTP Debugger & Client</h1>
         <p className="text-gray-600 mb-10 text-lg">
           Intercept, debug, and replay API requests with professional ease.
         </p>
