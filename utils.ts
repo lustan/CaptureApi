@@ -31,12 +31,14 @@ export const getMethodBadgeColor = (method?: string): string => {
     }
 };
 
+/**
+ * Generates a cURL command from a LoggedRequest (Captured history)
+ */
 export const generateCurl = (log: LoggedRequest): string => {
   let curl = `curl -X ${log.method} '${log.url}'`;
   
   if (log.requestHeaders) {
     Object.entries(log.requestHeaders).forEach(([key, value]) => {
-      // Exclude chrome specific or internal headers if necessary, but usually cURL copy includes all
       curl += ` \\\n  -H '${key}: ${value}'`;
     });
   }
@@ -46,12 +48,35 @@ export const generateCurl = (log: LoggedRequest): string => {
     if (typeof body === 'object') {
       body = JSON.stringify(body);
     }
-    // Simple escaping for single quotes in body if it's a string for bash compatibility
     const escapedBody = String(body).replace(/'/g, "'\\''");
     curl += ` \\\n  --data-raw '${escapedBody}'`;
   }
   
   return curl;
+};
+
+/**
+ * Generates a cURL command from an HttpRequest (Collection item)
+ */
+export const generateCurlFromRequest = (req: HttpRequest): string => {
+    let curl = `curl -X ${req.method} '${req.url}'`;
+    
+    req.headers.filter(h => h.enabled && h.key).forEach(h => {
+        curl += ` \\\n  -H '${h.key}: ${h.value}'`;
+    });
+
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+        if (req.bodyType === 'raw' && req.bodyRaw) {
+            const escapedBody = req.bodyRaw.replace(/'/g, "'\\''");
+            curl += ` \\\n  --data-raw '${escapedBody}'`;
+        } else if (req.bodyType === 'x-www-form-urlencoded') {
+            req.bodyForm.filter(f => f.enabled && f.key).forEach(f => {
+                curl += ` \\\n  --data '${f.key}=${f.value}'`;
+            });
+        }
+    }
+    
+    return curl;
 };
 
 export const parseCurl = (curlCommand: string): Partial<HttpRequest> | null => {
@@ -70,20 +95,21 @@ export const parseCurl = (curlCommand: string): Partial<HttpRequest> | null => {
     bodyRaw: ''
   };
 
-  const urlMatch = cleanCommand.match(/curl\s+(?:-[a-zA-Z-]+\s+)*['"]([^'"]+)['"]/);
-  const simpleUrlMatch = cleanCommand.match(/curl\s+(?:-[a-zA-Z-]+\s+)*([^\s"'-]+)/);
-
-  if (urlMatch) {
-    request.url = urlMatch[1];
-  } else if (simpleUrlMatch) {
-    request.url = simpleUrlMatch[1];
-  }
-
-  const methodMatch = cleanCommand.match(/-X\s+([A-Z]+)/);
+  // Improved Method Parsing
+  const methodMatch = cleanCommand.match(/-X\s+([A-Z]+)/i);
   if (methodMatch) {
-      request.method = methodMatch[1] as any;
+      request.method = methodMatch[1].toUpperCase() as any;
   }
 
+  // Improved URL Parsing: Specifically avoid picking up the method as the URL
+  // We look for strings starting with http, potentially in quotes
+  const urlRegex = /(?:https?:\/\/[^\s'"]+)|(?:['"]https?:\/\/[^\s'"]+['"])/;
+  const urlMatch = cleanCommand.match(urlRegex);
+  if (urlMatch) {
+      request.url = urlMatch[0].replace(/['"]/g, '');
+  }
+
+  // Header parsing
   const headerRegex = /-H\s+(['"])(.*?)\1/g;
   let headerMatch;
   while ((headerMatch = headerRegex.exec(cleanCommand)) !== null) {
@@ -96,7 +122,8 @@ export const parseCurl = (curlCommand: string): Partial<HttpRequest> | null => {
     }
   }
 
-  const dataRegex = /(?:--data-raw|--data|-d)\s+(['"])([\s\S]*?)\1/;
+  // Body parsing
+  const dataRegex = /(?:--data-raw|--data-binary|--data-urlencode|--data|-d)\s+(['"])([\s\S]*?)\1/;
   const dataMatch = cleanCommand.match(dataRegex);
   
   if (dataMatch) {

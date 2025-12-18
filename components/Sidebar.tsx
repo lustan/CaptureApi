@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { LoggedRequest, SidebarTab, CollectionItem, HttpRequest } from '../types';
-import { formatUrl, formatTime, getMethodColor, generateCurl } from '../utils';
+import { formatUrl, formatTime, getMethodColor, generateCurl, generateCurlFromRequest } from '../utils';
 import { APP_CONFIG } from '../config';
 import { Logo } from './Logo';
 
@@ -102,10 +102,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       setEditingType(null);
   };
 
-  const handleCopyAsCurl = (log: LoggedRequest) => {
-      const curl = generateCurl(log);
+  const handleCopyAsCurl = (data: any, type: 'log' | 'request') => {
+      const curl = type === 'log' ? generateCurl(data) : generateCurlFromRequest(data);
       navigator.clipboard.writeText(curl).then(() => {
-          // Could add a toast here
+          // Success
       });
       closeContextMenu();
   };
@@ -287,15 +287,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                            <span className="text-xs font-semibold text-gray-700 truncate" title={origin}>{origin}</span>
                            <span className="text-[10px] text-gray-500 truncate font-mono" title={path}>{path}</span>
                        </div>
-
-                       {/* Delete Button - Visible on Hover - Centered Vertically */}
-                       <button
-                         onClick={(e) => { e.stopPropagation(); onDeleteLog(item.id); }}
-                         className="absolute right-2 top-1/2 transform -translate-y-1/2 hidden group-hover:block p-1 text-gray-400 hover:text-red-500 bg-white rounded shadow-sm border border-gray-100 hover:border-red-200 transition-all z-10"
-                         title="Delete Log"
-                       >
-                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                       </button>
                      </li>
                    );
                })}
@@ -456,7 +447,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <svg className="w-3.5 h-3.5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
                         Duplicate
                     </button>
-                     <button 
+                    <button 
+                        className="w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-700 flex items-center"
+                        onClick={() => handleCopyAsCurl(contextMenu.data, 'request')}
+                    >
+                        <svg className="w-3.5 h-3.5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        Copy as cURL (bash)
+                    </button>
+                    <div className="border-t border-gray-100 my-1"></div>
+                    <button 
                         className="w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-600 flex items-center"
                         onClick={() => {
                             onDeleteRequest(contextMenu.data);
@@ -472,7 +471,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <>
                     <button 
                         className="w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-700 flex items-center"
-                        onClick={() => handleCopyAsCurl(contextMenu.data)}
+                        onClick={() => handleCopyAsCurl(contextMenu.data, 'log')}
                     >
                         <svg className="w-3.5 h-3.5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                         Copy as cURL (bash)
