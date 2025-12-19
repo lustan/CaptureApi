@@ -38,7 +38,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // headers: { name: string, value: string }[]
         
         // We use a fixed Rule ID (1) for the "Active Debug Request".
-        // This simplifies management. Each "Send" overwrites the rule for that specific URL.
         const ruleId = 1;
 
         const requestHeaders = headers.map((h: any) => ({
@@ -55,7 +54,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 requestHeaders: requestHeaders
             },
             condition: {
-                // We match the exact URL to avoid side effects on other requests
                 urlFilter: url, 
                 resourceTypes: [
                     chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
@@ -71,11 +69,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ success: true });
         });
 
-        return true; // Keep channel open for async response
+        return true; 
     }
 });
 
-// --- Storage Queue for Race Condition Fix ---
+// --- Storage Queue ---
 let isSaving = false;
 const saveQueue: any[] = [];
 
@@ -91,32 +89,27 @@ const processQueue = () => {
         let newLogs;
         
         if (idx !== -1) {
-            // Merge existing log with new data
             currentLogs[idx] = { ...currentLogs[idx], ...logToSave };
             newLogs = currentLogs;
         } else {
-            // New log
             newLogs = [logToSave, ...currentLogs].slice(0, MAX_LOGS);
         }
 
         chrome.storage.local.set({ logs: newLogs }, () => {
             isSaving = false;
-            if (saveQueue.length > 0) {
-                processQueue();
-            }
+            if (saveQueue.length > 0) processQueue();
         });
     });
 };
 
 const saveLog = (log: any) => {
   if (!log.url && !log.id) return;
-  // Push to queue
   saveQueue.push(log);
   processQueue();
 };
 
 const isExtensionRequest = (details: any) => {
-    // Check if the request is initiated by our own extension
+    // Check if the request is initiated by our own extension ID or internal pages
     return (
         details.initiator?.includes(EXTENSION_ID) ||
         details.url.startsWith('chrome-extension://') || 
@@ -125,14 +118,10 @@ const isExtensionRequest = (details: any) => {
     );
 };
 
-// --------------------------------------------
-
 // 1. Capture Request Body & Basic Info
 chrome.webRequest.onBeforeRequest.addListener(
   (details: any) => {
-    if (isExtensionRequest(details) || details.type === 'ping') {
-        return;
-    }
+    if (isExtensionRequest(details) || details.type === 'ping') return;
 
     chrome.storage.local.get(['isRecording'], (result) => {
       if (!result.isRecording) return;
@@ -150,11 +139,8 @@ chrome.webRequest.onBeforeRequest.addListener(
       if (details.requestBody) {
         if (details.requestBody.raw && details.requestBody.raw[0]) {
            const enc = new TextDecoder("utf-8");
-           try {
-             log.requestBody = enc.decode(details.requestBody.raw[0].bytes);
-           } catch (e) {
-             log.requestBody = "[Binary Data]";
-           }
+           try { log.requestBody = enc.decode(details.requestBody.raw[0].bytes); } 
+           catch (e) { log.requestBody = "[Binary Data]"; }
         } else if (details.requestBody.formData) {
            log.requestBody = details.requestBody.formData;
         }
@@ -172,12 +158,8 @@ chrome.webRequest.onBeforeRequest.addListener(
 chrome.webRequest.onBeforeSendHeaders.addListener(
   (details: any) => {
     if (!pendingRequests[details.requestId]) return;
-    
     const headers: Record<string, string> = {};
-    details.requestHeaders?.forEach((h: any) => {
-      headers[h.name] = h.value || '';
-    });
-    
+    details.requestHeaders?.forEach((h: any) => { headers[h.name] = h.value || ''; });
     const update = { id: details.requestId, requestHeaders: headers };
     pendingRequests[details.requestId] = { ...pendingRequests[details.requestId], ...update };
     saveLog(update);
@@ -190,12 +172,8 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 chrome.webRequest.onHeadersReceived.addListener(
   (details: any) => {
     if (!pendingRequests[details.requestId]) return;
-
     const headers: Record<string, string> = {};
-    details.responseHeaders?.forEach((h: any) => {
-      headers[h.name] = h.value || '';
-    });
-
+    details.responseHeaders?.forEach((h: any) => { headers[h.name] = h.value || ''; });
     const update = { id: details.requestId, responseHeaders: headers };
     pendingRequests[details.requestId] = { ...pendingRequests[details.requestId], ...update };
     saveLog(update);
@@ -210,10 +188,7 @@ chrome.webRequest.onCompleted.addListener(
     if (pendingRequests[details.requestId]) {
       const update = { id: details.requestId, status: details.statusCode };
       saveLog(update);
-      // Keep in pendingRequests briefly in case of late-arriving events or just delete
-      setTimeout(() => {
-          delete pendingRequests[details.requestId];
-      }, 5000);
+      setTimeout(() => { delete pendingRequests[details.requestId]; }, 5000);
     }
   },
   { urls: ["<all_urls>"] }
@@ -229,9 +204,3 @@ chrome.webRequest.onErrorOccurred.addListener(
   },
   { urls: ["<all_urls>"] }
 );
-
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "import-request") {
-    chrome.tabs.create({ url: "panel.html" });
-  }
-});

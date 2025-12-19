@@ -95,18 +95,18 @@ export const parseCurl = (curlCommand: string): Partial<HttpRequest> | null => {
     bodyRaw: ''
   };
 
-  // Improved Method Parsing: specifically looking for -X or --request
+  // Improved Method Parsing: specifically looking for -X or --request flags
   const methodMatch = cleanCommand.match(/(?:-X|--request)\s+([A-Z]+)/i);
   if (methodMatch) {
       request.method = methodMatch[1].toUpperCase() as any;
   }
 
-  // Improved URL Parsing: Specifically find strings that look like URLs (http/https)
-  // This avoids picking up flags or method names as the URL
+  // Improved URL Parsing: Look specifically for http/https strings
+  // This prevents flags or methods from being identified as the URL
   const urlRegex = /(?:https?:\/\/[^\s'"]+)/i;
   const urlMatch = cleanCommand.match(urlRegex);
   if (urlMatch) {
-      // Remove trailing quotes if they exist
+      // Clean up surrounding quotes
       request.url = urlMatch[0].replace(/['"]$/, '').replace(/^['"]/, '');
   }
 
@@ -130,7 +130,6 @@ export const parseCurl = (curlCommand: string): Partial<HttpRequest> | null => {
   if (dataMatch) {
     request.bodyRaw = dataMatch[2];
     request.bodyType = 'raw';
-    // If body exists and no method specified, default to POST
     if (!methodMatch) {
         request.method = 'POST';
     }
