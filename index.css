@@ -5,14 +5,19 @@
 
 @layer utilities {
   .bg-green-100\! {
-    background-color: #dcfce7 !important;
+    background-color: #ecfdf5 !important;
   }
   .text-green-800\! {
-    color: #166534 !important;
+    color: #065f46 !important;
   }
   .border-green-600\! {
-    border-color: #16a34a !important;
+    border-color: #059669 !important;
   }
+  
+  /* Brand-specific colors */
+  .text-brand-emerald { color: #10b981; }
+  .text-brand-blue { color: #0ea5e9; }
+  .text-brand-indigo { color: #6366f1; }
 }
 
 /* Custom scrollbar for better look in small panels */
@@ -47,6 +52,16 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes logo-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
 .animate-fadeIn {
     animation: fadeIn 0.15s ease-out forwards;
+}
+
+.animate-logo-pulse {
+    transform-origin: center;
+    animation: logo-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

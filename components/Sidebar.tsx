@@ -118,9 +118,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         key={req.id} 
         draggable 
         onDragStart={(e) => handleDragStart(e, req.id)} 
+        onMouseDown={() => {}} // dummy to allow click
         onClick={(e) => { e.stopPropagation(); onSelectRequest(req); }} 
         onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, type: 'request', id: req.id, data: req }); }} 
-        className={`flex items-center px-2 py-1.5 rounded cursor-pointer text-xs transition-all relative group mb-0.5 ${isActive ? 'bg-green-100! text-green-800! font-semibold ring-1 ring-green-200' : 'text-gray-600 hover:bg-white hover:shadow-sm'}`}
+        className={`flex items-center px-2 py-1.5 rounded cursor-pointer text-xs transition-all relative group mb-0.5 ${isActive ? 'bg-indigo-50 text-indigo-800 font-semibold ring-1 ring-indigo-200' : 'text-gray-600 hover:bg-white hover:shadow-sm'}`}
       >
           <span className={`w-10 font-bold text-[9px] mr-1 ${getMethodColor(req.method)}`}>{req.method}</span>
           {editingId === req.id && editingType === 'request' ? (
@@ -134,10 +135,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-gray-50 border-r border-gray-200 w-72 flex-shrink-0 relative select-none">
-      <div className="h-10 px-3 border-b border-gray-200 bg-white flex items-center justify-between">
-         <div className="flex items-center space-x-2">
-            <Logo size={18} className="text-green-600" />
-            <span className="font-bold text-gray-700 text-sm tracking-tight">CaptureApi</span>
+      <div className="h-12 px-3 border-b border-gray-200 bg-white flex items-center justify-between">
+         <div className="flex items-center">
+            <Logo size={22} />
          </div>
          <div className="flex items-center space-x-1">
             <button onClick={onImportCurl} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded" title="Import cURL"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={2}/></svg></button>
@@ -184,8 +184,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className="flex text-xs font-bold border-b border-gray-200 bg-white uppercase tracking-wider">
-        <button onClick={() => onTabChange('collections')} className={`flex-1 py-2.5 text-center transition-all ${activeTab === 'collections' ? 'text-green-600 border-b-2 border-green-600 bg-green-50/30' : 'text-gray-400 hover:text-gray-600'}`}>Collections</button>
-        <button onClick={() => onTabChange('history')} className={`flex-1 py-2.5 text-center transition-all ${activeTab === 'history' ? 'text-green-600 border-b-2 border-green-600 bg-green-50/30' : 'text-gray-400 hover:text-gray-600'}`}>
+        <button onClick={() => onTabChange('collections')} className={`flex-1 py-2.5 text-center transition-all ${activeTab === 'collections' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/30' : 'text-gray-400 hover:text-gray-600'}`}>Collections</button>
+        <button onClick={() => onTabChange('history')} className={`flex-1 py-2.5 text-center transition-all ${activeTab === 'history' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/30' : 'text-gray-400 hover:text-gray-600'}`}>
             Captured ({history.length})
         </button>
       </div>
@@ -207,7 +207,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         placeholder="Filter captured requests..."
                         value={filterText}
                         onChange={(e) => setFilterText(e.target.value)}
-                        className="w-full text-[10px] pl-7 pr-2 py-1 bg-white border border-gray-200 rounded focus:outline-none focus:border-green-400 transition-colors"
+                        className="w-full text-[10px] pl-7 pr-2 py-1 bg-white border border-gray-200 rounded focus:outline-none focus:border-indigo-400 transition-colors"
                     />
                     <svg className="w-3 h-3 absolute left-2 top-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth={2}/></svg>
                     {filterText && (
@@ -228,7 +228,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       key={item.id} 
                       draggable 
                       onDragStart={(e) => handleDragStart(e, item.id)} 
-                      className={`px-3 py-2 cursor-pointer transition-colors group relative border-l-4 ${isActive ? 'bg-green-100! border-green-600!' : 'bg-transparent border-transparent hover:bg-white'}`} 
+                      className={`px-3 py-2 cursor-pointer transition-colors group relative border-l-4 ${isActive ? 'bg-indigo-50 border-indigo-600' : 'bg-transparent border-transparent hover:bg-white'}`} 
                       onClick={() => onImportLoggedRequest(item)} 
                       onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, type: 'log', id: item.id, data: item }); }}
                    >
@@ -239,7 +239,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                          </div>
                          <span className={`text-[9px] px-1 rounded font-bold ${item.status >= 400 ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50'}`}>{item.status || '...'}</span>
                        </div>
-                       <div className={`text-[11px] font-semibold truncate ${isActive ? 'text-green-900' : 'text-gray-700'}`}>{origin}</div>
+                       <div className={`text-[11px] font-semibold truncate ${isActive ? 'text-indigo-900' : 'text-gray-700'}`}>{origin}</div>
                        <div className="text-[9px] text-gray-400 truncate font-mono opacity-70">{path}</div>
                    </div>
                  );
@@ -251,7 +251,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           <div className="flex flex-col min-h-full">
             <div 
-                className={`flex flex-col p-2 min-h-[40px] transition-colors ${isDragOverRootZone ? 'bg-green-100/50 outline-dashed outline-2 outline-green-400 rounded-md m-1' : ''}`}
+                className={`flex flex-col p-2 min-h-[40px] transition-colors ${isDragOverRootZone ? 'bg-indigo-100/50 outline-dashed outline-2 outline-indigo-400 rounded-md m-1' : ''}`}
                 onDragOver={(e) => handleDragOver(e, null)}
                 onDrop={(e) => handleDrop(e, null)}
                 onDragLeave={handleDragLeave}
@@ -297,7 +297,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {contextMenu && (
-          <div className="fixed bg-white border border-gray-200 shadow-xl rounded-md py-1.5 z-[100] w-52 animate-fadeIn border-t-2 border-t-green-500" style={{ top: contextMenu.y, left: contextMenu.x }}>
+          <div className="fixed bg-white border border-gray-200 shadow-xl rounded-md py-1.5 z-[100] w-52 animate-fadeIn border-t-2 border-t-indigo-500" style={{ top: contextMenu.y, left: contextMenu.x }}>
               {contextMenu.type === 'log' && (
                   <>
                       <button className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 flex items-center" onClick={() => { onMoveRequest(contextMenu.id, null); setContextMenu(null); }}><svg className="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeWidth={2}/></svg>Save</button>
